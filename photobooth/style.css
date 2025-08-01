@@ -8,6 +8,13 @@ body {
   position: relative;
 }
 
+@font-face {
+  font-family: 'CustomFont'; /* Ganti dengan nama font Anda */
+  src: url('fonts/Corinthia-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
 .app-container {
   max-width: 800px;
   margin: 0 auto;

@@ -15,7 +15,6 @@ let capturedFrames = [];
 let videoStream = null;
 let deferredPrompt;
 
-
 // Elemen DOM
 const steps = document.querySelectorAll('.step');
 const layoutOptions = document.querySelectorAll('.layout-option');
@@ -39,15 +38,25 @@ const muteIcon = document.querySelector('.mute-icon');
 bgMusic.volume = 0.3;
 bgMusic.loop = true;
 
-// Handle autoplay policy
+// Set state awal ikon (musik menyala)
+musicIcon.style.display = 'block';
+muteIcon.style.display = 'none';
+
+// Handle autoplay policy yang lebih baik
 function startMusic() {
+  // Coba play musik
   const playPromise = bgMusic.play();
   
   if (playPromise !== undefined) {
-    playPromise.catch(error => {
-      // Autoplay prevented, show paused state
+    playPromise.then(() => {
+      // Berhasil play - tampilkan icon musik
+      musicIcon.style.display = 'block';
+      muteIcon.style.display = 'none';
+    }).catch(error => {
+      // Gagal play - tampilkan icon mute
       musicIcon.style.display = 'none';
       muteIcon.style.display = 'block';
+      console.log('Autoplay prevented:', error);
     });
   }
 }
@@ -55,25 +64,27 @@ function startMusic() {
 // Coba play saat pertama load
 startMusic();
 
-// Tambahkan fallback untuk mobile
-document.addEventListener('click', function firstInteraction() {
+// Tambahkan fallback untuk mobile - gunakan event listener di container utama
+document.querySelector('.app-container').addEventListener('click', function firstInteraction() {
   startMusic();
-  document.removeEventListener('click', firstInteraction);
-}, { once: true });
+  document.querySelector('.app-container').removeEventListener('click', firstInteraction);
+}, { once: true, passive: true });
 
-// Toggle control
+// Toggle control yang lebih robust
 musicToggle.addEventListener('click', () => {
   if (bgMusic.paused) {
-    bgMusic.play();
-    musicIcon.style.display = 'block';
-    muteIcon.style.display = 'none';
+    bgMusic.play().then(() => {
+      musicIcon.style.display = 'block';
+      muteIcon.style.display = 'none';
+    }).catch(err => {
+      console.log('Play failed:', err);
+    });
   } else {
     bgMusic.pause();
     musicIcon.style.display = 'none';
     muteIcon.style.display = 'block';
   }
 });
-
 
 // PWA Installation
 const installBtn = document.createElement('button');
@@ -87,29 +98,45 @@ document.body.appendChild(installBtn);
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  installBtn.style.display = 'block'; // Selalu tampilkan tombol
+  installBtn.style.display = 'block';
   
   installBtn.addEventListener('click', async () => {
     if (deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       console.log(`User ${outcome} the install prompt`);
-      // TIDAK menyembunyikan tombol setelah install
     }
   });
 });
 
-// Service Worker Registration
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(reg => console.log('Service Worker registered'))
-      .catch(err => console.log('Service Worker registration failed: ', err));
-  });
+// Fungsi untuk memastikan font sudah dimuat
+async function ensureFontLoaded() {
+  const font = new FontFace(
+    'CustomFont',
+    'url(fonts/Corinthia-Bold.ttf)'
+  );
+  
+  try {
+    await font.load();
+    document.fonts.add(font);
+    console.log('Custom font loaded successfully');
+  } catch (err) {
+    console.error('Failed to load custom font:', err);
+    // Fallback ke font lain jika gagal
+    const fallbackFont = new FontFace(
+      'Parisienne', 
+      'url(https://fonts.gstatic.com/s/parisienne/v8/E21i_d3kivvAkxhLEVZpcy96X4aPgw.ttf)'
+    );
+    await fallbackFont.load();
+    document.fonts.add(fallbackFont);
+  }
 }
 
 // Inisialisasi
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  // Load font terlebih dahulu
+  await ensureFontLoaded();
+  
   // Set default countdown
   countdownSelect.value = selectedCountdown;
   
@@ -117,12 +144,11 @@ document.addEventListener('DOMContentLoaded', () => {
   initEventListeners();
 
   newPhotoBtn.addEventListener('click', () => {
-    goToStep(1); // Restart the process
+    goToStep(1);
   });
 });
 
 function initEventListeners() {
-  // Layout selection
   layoutOptions.forEach(option => {
     option.addEventListener('click', () => {
       layoutOptions.forEach(opt => opt.classList.remove('selected'));
@@ -131,12 +157,10 @@ function initEventListeners() {
     });
   });
 
-  // Countdown selection
   countdownSelect.addEventListener('change', () => {
     selectedCountdown = parseInt(countdownSelect.value);
   });
 
-  // Navigation buttons
   nextBtn1.addEventListener('click', () => {
     if (!selectedLayout) {
       alert('Please select a layout first.');
@@ -149,7 +173,6 @@ function initEventListeners() {
     goToStep(3);
   });
 
-  // Start photo capture
   startBtn.addEventListener('click', startPhotoCapture);
 }
 
@@ -210,11 +233,9 @@ async function startPhotoCapture() {
       progressBarFill.style.width = `${((i + 1) / totalFrames) * 100}%`;
     }
     
-    // Generate and show results
     await generatePhotoStrip();
     goToStep(4);
     
-    // Stop camera
     if (videoStream) {
       videoStream.getTracks().forEach(track => track.stop());
       videoStream = null;
@@ -228,25 +249,20 @@ async function startPhotoCapture() {
 // Capture single frame
 function captureFrame() {
   return new Promise(resolve => {
-    // Trigger flash effect
     flash.style.opacity = 0.9;
     setTimeout(() => {
       flash.style.opacity = 0;
     }, 300);
 
     const canvas = document.createElement('canvas');
-    // Maintain aspect ratio
     const aspectRatio = videoElement.videoWidth / videoElement.videoHeight;
     canvas.width = videoElement.videoWidth;
     canvas.height = videoElement.videoHeight;
     
     const ctx = canvas.getContext('2d');
-    
-    // Remove mirror effect for saved photos
     ctx.translate(canvas.width, 0);
     ctx.scale(-1, 1);
     
-    // Draw frame with rounded corners
     ctx.beginPath();
     ctx.roundRect(0, 0, canvas.width, canvas.height, 20);
     ctx.closePath();
@@ -254,7 +270,6 @@ function captureFrame() {
     
     ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
     
-    // Add some basic filter
     ctx.filter = 'contrast(1.1) brightness(1.05) saturate(1.1)';
     ctx.drawImage(canvas, 0, 0);
     ctx.filter = 'none';
@@ -286,13 +301,16 @@ function countdown(seconds) {
 }
 
 // Generate photo strip
-function generatePhotoStrip() {
+async function generatePhotoStrip() {
+  // Pastikan font sudah dimuat
+  await ensureFontLoaded();
+  
   return new Promise((resolve) => {
     const stripCanvas = document.createElement('canvas');
     const ctx = stripCanvas.getContext('2d');
     const frameCount = capturedFrames.length;
     const imgWidth = 350;
-    const imgHeight = Math.round(imgWidth / (videoElement.videoWidth/videoElement.videoHeight)); // Maintain aspect ratio
+    const imgHeight = Math.round(imgWidth / (videoElement.videoWidth/videoElement.videoHeight));
     
     const padding = 15;
     const margin = 15;
@@ -301,7 +319,6 @@ function generatePhotoStrip() {
     stripCanvas.width = imgWidth + (margin * 2);
     stripCanvas.height = (imgHeight * frameCount) + (padding * (frameCount - 1)) + textHeight + 30;
     
-    // Background gradient with rounded corners
     ctx.fillStyle = '#f1d2f9ff';
     ctx.fillRect(0, 0, stripCanvas.width, stripCanvas.height);
     
@@ -314,20 +331,18 @@ function generatePhotoStrip() {
         const x = margin;
         const y = margin + (imgHeight + padding) * index;
 
-        // Apply mirror effect for the strip
-        ctx.save(); // Save the current context
-        ctx.translate(x + imgWidth, y); // Move to the right edge of the image
-        ctx.scale(-1, 1); // Flip horizontally
-        
-        ctx.drawImage(img, 0, 0, imgWidth, imgHeight); // Draw the image
-        ctx.restore(); // Restore the context to avoid affecting other drawings
+        ctx.save();
+        ctx.translate(x + imgWidth, y);
+        ctx.scale(-1, 1);
+        ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+        ctx.restore();
         
         loadedImages++;
         
         if (loadedImages === frameCount) {
-          // Add text with hand script font
+          // Gunakan font yang sudah dimuat
           ctx.fillStyle = '#000000ff';
-          ctx.font = 'bold 28px "Parisienne", cursive';
+          ctx.font = 'bold 28px "CustomFont", cursive';
           ctx.textAlign = 'center';
           ctx.fillText(
             "Agneesha's Birthday", 
