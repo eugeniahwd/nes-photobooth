@@ -1,0 +1,7 @@
+{
+  "name": "leo-cam-photobooth",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "echo 'Build step completed' && exit 0"
+  }
+}
