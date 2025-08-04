@@ -1,6 +1,6 @@
 {
   "id": "/",
-  "name": "Neesha's Birthday Photobooth",
+  "name": "Leo Cam",
   "short_name": "Photobooth",
   "start_url": "/",
   "display": "standalone",
@@ -18,4 +18,5 @@
       "type": "image/png"
     }
   ]
+
 }
