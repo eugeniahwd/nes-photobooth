@@ -1,8 +1,9 @@
 [build]
-  publish = "dist"  # atau folder build Anda
-  command = "npm run build"
+  command = "echo 'Skipping build' && exit 0"
+  publish = "."
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
+
   status = 200
