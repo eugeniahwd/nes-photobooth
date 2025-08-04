@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Agneesha's Photobooth</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Parisienne&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#a18cd1">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+<!-- Audio Player -->
+<div class="music-control">
+  <audio id="bgMusic" loop autoplay>
+    <source src="background-music.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+  <button id="musicToggle" class="music-btn">
+    <span class="music-icon">🎵</span>
+    <span class="mute-icon" style="display:none;">🔇</span>
+  </button>
+</div>
+
+  <div class="app-container">
+    <h1>Agneesha's Birthday Photobooth</h1>
+
+    <!-- Step 1: Choose layout -->
+    <div class="step active" id="step1">
+      <h2>Choose Layout</h2>
+      <div class="options">
+        <div class="layout-option" data-layout="3x1">
+          <img src="layout-3x1-preview.png" alt="3x1 Layout" class="strip-preview" />
+          <p>3x1 Strip</p>
+        </div>
+        <div class="layout-option" data-layout="4x1">
+          <img src="layout-4x1-preview.png" alt="4x1 Layout" class="strip-preview" />
+          <p>4x1 Strip</p>
+        </div>
+      </div>
+      <button id="nextBtn1" class="nav-button">Next</button>
+    </div>
+
+    <!-- Step 2: Choose countdown -->
+    <div class="step" id="step2">
+      <h2>Choose Countdown</h2>
+      <select id="countdownSelect">
+        <option value="3">3 Seconds</option>
+        <option value="5">5 Seconds</option>
+        <option value="10">10 Seconds</option>
+      </select>
+      <br />
+      <button id="nextBtn2" class="nav-button">Next</button>
+    </div>
+
+    <!-- Step 3: Take photo -->
+    <div class="step" id="step3">
+      <h2>Get Ready!</h2>
+      <video id="video" autoplay playsinline></video>
+      <div id="countdownDisplay"></div>
+      <div class="progress-bar">
+        <div id="progressBarFill"></div>
+      </div>
+      <button id="startBtn" class="nav-button">Start</button>
+    </div>
+
+    <!-- Step 4: Show result -->
+    <div class="step" id="step4">
+      <h2>Your Photostrip</h2>
+      <div class="result-container">
+        <img id="stripResult" alt="Photostrip Result" />
+        <div class="action-buttons">
+          <a id="downloadStrip" class="download-btn" download="Agneesha_photostrip.png">Download Strip</a>
+          <button id="newPhotoBtn" class="nav-button">Take Another Photo</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flash effect -->
+    <div id="flash"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
