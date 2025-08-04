@@ -1,4 +1,4 @@
-const CACHE_NAME = "photobooth-cache-v1";
+const CACHE_NAME = "photobooth-cache-v1.2";
 const urlsToCache = [
   "/",
   "/index.html",
@@ -23,4 +23,5 @@ self.addEventListener("fetch", (event) => {
       return response || fetch(event.request);
     })
   );
+
 });
