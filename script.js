@@ -173,10 +173,13 @@ function initEventListeners() {
       console.log('Layout clicked:', this.dataset.layout);
       
       // Hapus class selected dari semua option
-      layoutOptions.forEach(opt => {
-        opt.classList.remove('selected');
-        console.log('Removed selected from:', opt.dataset.layout);
-      });
+      layoutOptions.forEach(option => {
+      const img = option.querySelector('img');
+      img.onerror = () => {
+      console.error('Failed to load layout image:', img.src);
+      option.style.display = 'none'; // Sembunyikan option yang gambarnya gagal load
+  };
+});
       
       // Tambah class selected ke option yang diklik
       this.classList.add('selected');
@@ -430,4 +433,5 @@ async function generatePhotoStrip() {
       };
     });
   });
+
 }
